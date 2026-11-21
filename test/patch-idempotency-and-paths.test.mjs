@@ -17,18 +17,43 @@ test('#3 源码不再用 URL.pathname 拼目标路径', () => {
   assert.ok(!/new URL\(import\.meta\.url\)\.pathname/.test(src), '不应再用 URL.pathname')
 })
 
-test('#3 fileURLToPath 在 POSIX 上给出真实路径（与 pathname 一致）', () => {
-  const u = new URL('file:///Users/a/b/index.js')
-  assert.equal(fileURLToPath(u), '/Users/a/b/index.js')
-  assert.equal(u.pathname, '/Users/a/b/index.js')
+// #3（下游在真机复核时指出）：这条断言原来无条件按 POSIX 语义写，在 Windows 上不是"返回不等"，
+//   而是 fileURLToPath(new URL('file:///Users/a/b/index.js')) 直接抛 ERR_INVALID_FILE_URL_PATH
+//   （"File URL path must be absolute"）。于是本文件在 Windows 上必红一条——而 Windows 恰是本插件
+//   最需要被验证的平台。这里按平台分支：POSIX 验 POSIX 语义，win32 验 win32 语义，两边都真跑、都不空转。
+// #3（下游真机复核时指出）：原来的断言无条件按 POSIX 语义写，在 Windows 上不是"返回不等"而是
+//   直接抛 ERR_INVALID_FILE_URL_PATH（"File URL path must be absolute"），于是本文件在 Windows 上必红
+//   一条——而 Windows 恰是本插件最需要被验证的平台。
+//   实测两个方向的语义（macOS/Node 26 与下游 win32/Node 22 一致的地方）：
+//     · file:///C:/…   在 POSIX 上**不抛**，返回 '/C:/…'；在 win32 上解出盘符路径且无前导斜杠；
+//     · file:///Users/… 在 POSIX 上原样返回；在 win32 上**抛** ERR_INVALID_FILE_URL_PATH。
+//   所以这里不跨平台断言"相等"，只断言各平台下的真实不变量。
+test('#3 fileURLToPath: 盘符形态在 win32 上解出可用的盘符路径', () => {
+  const w = new URL('file:///C:/Users/DELL/x/index.js')
+  assert.equal(w.pathname, '/C:/Users/DELL/x/index.js', 'pathname 带前导斜杠（#3 的成因）')
+  let decoded = ''
+  try { decoded = fileURLToPath(w) } catch (e) { decoded = '' }
+  if (process.platform === 'win32') {
+    assert.ok(decoded, 'win32 上应能解出路径')
+    assert.ok(!decoded.startsWith('\\'), '不能以反斜杠开头（否则 path.join 后成 \\C:\\… 死路径）')
+    assert.ok(!decoded.startsWith('/'), '不能以斜杠开头')
+  } else {
+    // POSIX 上解出的是 '/C:/…' 这种带前导斜杠的串——本插件不在 POSIX 上用它拼盘符路径，
+    //   这里只记录事实，不做"应与 win32 相等"的跨平台断言。
+    assert.ok(decoded === '' || decoded.startsWith('/'), 'POSIX 上要么抛、要么返回带前导斜杠的串')
+  }
 })
 
-test('#3 win32 形态：pathname 带前导斜杠、fileURLToPath 不带（平台无关地验证差异）', () => {
-  // Node 在 POSIX 上 fileURLToPath 会拒绝 file:///C: 形态，这里只验证 pathname 的形状，
-  // 说明「带前导斜杠」确实存在，正是 #3 的成因。
-  const u = new URL('file:///C:/Users/DELL/x/index.js')
-  assert.equal(u.pathname, '/C:/Users/DELL/x/index.js')
-  assert.ok(u.pathname.startsWith('/C:'), 'pathname 带前导斜杠 → path.join 后成 \\C:\\… 死路径')
+test('#3 fileURLToPath: POSIX 形态在各平台上的既有语义', () => {
+  const u = new URL('file:///Users/a/b/index.js')
+  assert.equal(u.pathname, '/Users/a/b/index.js')
+  if (process.platform === 'win32') {
+    // win32 上这里是"抛"，不是"返回不等"——旧断言正是这样误红的。
+    assert.throws(() => fileURLToPath(u), /ERR_INVALID_FILE_URL_PATH|must be absolute/,
+      'win32 上解 POSIX 形态应抛 ERR_INVALID_FILE_URL_PATH')
+  } else {
+    assert.equal(fileURLToPath(u), '/Users/a/b/index.js')
+  }
 })
 
 test('#4 已打过签名时，patch* 返回原串（表示 already，不是失败）', () => {
