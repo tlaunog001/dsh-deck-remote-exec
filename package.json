@@ -1,6 +1,6 @@
 {
   "name": "dsh-deck-remote-exec",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "description": "让 dsh-mattpocock-skills-deck 在 dsh-remote 的远端工作区里正常工作：提供 remoteFs / remoteExec 服务，并把 deck 的 fs / subprocess / resolveExecutable 接到它们。不改 dsh-remote 源码。",
   "type": "module",
   "main": "lib/index.js",
