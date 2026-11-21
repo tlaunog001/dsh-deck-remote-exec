@@ -93,3 +93,22 @@ workspace-write 沙箱写不进去。用仓库根目录的 `deploy.sh` 同步：
 （danger-full-access），或在沙箱外的普通终端里跑。
 
 `deck-remote-exec-services.patch` 是同一处 services.js 改动的 diff 形式，供手工应用。
+
+## 跑回归测试
+
+在仓库里跑（需要本机有 dsh-remote 供 `loadRemoteModules` 解析，缺了会跳过端到端用例）：
+
+```bash
+node --test test/
+```
+
+单独跑某一组：
+
+```bash
+node --test test/canonical-mirror-path.test.mjs   # BUG-009：镜像盘符路径大小写归一
+node --test test/xlate-argv.test.mjs              # issue #2：argv 位路径翻译 + BUG-008 反向防护
+node --test test/load-remote-modules.test.mjs     # 公开入口与旧版回退
+```
+
+测试是开发期资产，按上游惯例不进装机产物（`package.json` 的 `files` 不含 `test/`）；
+在真机复现时从仓库取对应测试文件放进安装目录跑即可。
