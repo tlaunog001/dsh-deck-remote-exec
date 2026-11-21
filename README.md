@@ -76,3 +76,20 @@ fs 读取     3731 字节（docs/agents/issue-tracker.md）
 ## 许可
 
 MIT
+
+## 部署到沙箱外的安装目录（deploy.sh）
+
+本仓库是 workspace 内的版本化副本；真正生效的安装在 `~/.dsh` 下，DSH 会话的
+workspace-write 沙箱写不进去。用仓库根目录的 `deploy.sh` 同步：
+
+```bash
+./deploy.sh --check   # 只报告差异，不写文件
+./deploy.sh           # 备份 + 同步 + 校验，已一致则跳过（幂等）
+```
+
+它同步两样东西：`lib/services.js`（本插件，改成优先用 dsh-remote 公开入口）
+和 `dsh-remote` 的 `lib/deck-bridge.js` + `package.json` 里的 `exports` 登记。
+支持 `DSH_HOME` / `DSH_PROFILE` 环境变量指向别处；沙箱会话里执行需要一次性提权
+（danger-full-access），或在沙箱外的普通终端里跑。
+
+`deck-remote-exec-services.patch` 是同一处 services.js 改动的 diff 形式，供手工应用。
