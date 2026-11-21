@@ -1,0 +1,5 @@
+# dsh-deck-remote-exec bundle patch：只插入本插件。
+# 本插件自给自足：自己注册 remoteFs / remoteExec，不依赖 dsh-remote 被打过补丁。
+- insert:
+    - id: dsh-deck-remote-exec
+      name: 'dsh-deck-remote-exec'

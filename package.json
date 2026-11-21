@@ -1,0 +1,34 @@
+{
+  "name": "dsh-deck-remote-exec",
+  "version": "1.1.0",
+  "description": "让 dsh-mattpocock-skills-deck 在 dsh-remote 的远端工作区里正常工作：提供 remoteFs / remoteExec 服务，并把 deck 的 fs / subprocess / resolveExecutable 接到它们。不改 dsh-remote 源码。",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./services": "./lib/services.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "README.md"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "dsh-remote": ">=1.3.0"
+  },
+  "peerDependenciesMeta": {
+    "dsh-remote": {
+      "optional": true
+    }
+  },
+  "dsh": {
+    "engines": {
+      "dsh": ">=0.1.0-rc.6"
+    },
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}
