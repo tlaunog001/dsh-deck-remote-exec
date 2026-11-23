@@ -15,7 +15,13 @@ const src = readFileSync(new URL('../lib/index.js', import.meta.url), 'utf8')
 const repoRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)))
 const deckLib = path.join(repoRoot, '..', 'dsh-mattpocock-skills-deck', 'package', 'lib')
 
-const SIGNS = { fs: '__rdeFsFacade', exec: '__rdeExecFor', resolve: '__rdeResolve', pc: '__rdePcCwd' }
+// 签名带版本戳（issue #8），测试不硬编码版本号，直接从源码取常量值。
+function signOf(name) {
+  const m = src.match(new RegExp('const ' + name + ' = "([^"]+)"'))
+  assert.ok(m, '源码里找不到常量 ' + name)
+  return m[1]
+}
+const SIGNS = { fs: signOf('SIGN_FS'), exec: signOf('SIGN_EXEC'), resolve: signOf('SIGN_RESOLVE'), pc: '__rdePcCwd' }
 
 test('#5 index.js 的 signList 不含 SIGN_RESOLVE（patchSource 不写它）', () => {
   assert.ok(

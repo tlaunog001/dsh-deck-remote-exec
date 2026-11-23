@@ -57,9 +57,12 @@ test('#3 fileURLToPath: POSIX 形态在各平台上的既有语义', () => {
 })
 
 test('#4 已打过签名时，patch* 返回原串（表示 already，不是失败）', () => {
-  const already = 'const x = "__rdeFsFacade"; const y = "__rdeExecFor"; const z = "__rdeResolve";'
+  const sigFs = (src.match(/const SIGN_FS = "([^"]+)"/) || [])[1]
+  const sigExec = (src.match(/const SIGN_EXEC = "([^"]+)"/) || [])[1]
+  const sigResolve = (src.match(/const SIGN_RESOLVE = "([^"]+)"/) || [])[1]
+  const already = 'const x = "' + sigFs + '"; const y = "' + sigExec + '"; const z = "' + sigResolve + '";'
   assert.equal(patchSource(already), already)
-  const plat = 'const a = "__rdeResolve";'
+  const plat = 'const a = "' + sigResolve + '";'
   assert.equal(patchPlatform(plat), plat)
   const pred = 'const b = "__rdePcCwd";'
   assert.equal(patchPredicate(pred), pred)

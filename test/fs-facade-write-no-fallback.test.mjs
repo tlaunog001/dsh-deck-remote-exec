@@ -40,7 +40,9 @@ function buildFacade(opts = {}) {
     'logCtx': { fire: (lvl, ev, f) => logged.push({ lvl, ev, f }), isEnabled: () => true },
   }
   const ctx = { get: (k) => services[k] }
-  const facade = new Function('ctx', block + '\n return __rdeFsFacade;')(ctx)
+  // 签名带版本戳（issue #8）：从产物块里取实际注入的 facade 变量名。
+  const facadeName = (block.match(/const (__rdeFsFacade\w*) = new Proxy/) || [])[1] || '__rdeFsFacade'
+  const facade = new Function('ctx', block + '\n return ' + facadeName + ';')(ctx)
   return { facade, localCalls, logged, MIRROR }
 }
 
