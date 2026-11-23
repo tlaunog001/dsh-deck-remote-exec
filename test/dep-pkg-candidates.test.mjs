@@ -10,7 +10,7 @@ test('候选包名同时包含官方名与本人 scope 名', () => {
   const m = SRC.match(/DEP_PKG_CANDIDATES\s*=\s*\[([^\]]+)\]/)
   assert.ok(m, '应声明 DEP_PKG_CANDIDATES')
   assert.ok(m[1].includes("'dsh-remote'"), '必须仍认官方包名')
-  assert.ok(m[1].includes("'@tlaunog001/dsh-remote'"), '必须认本人 scope 包名')
+  assert.ok(m[1].includes("'@tanker001/dsh-remote'"), '必须认本人 scope 包名')
 })
 
 test('三个解析位置（require / 同级目录 / profile）都对每个包名各探一次', () => {
